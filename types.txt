@@ -2,3 +2,7 @@
 - vec folder
 - map folder
 - struct folder
+
+- static content
+- program-updatable, user-readonly dynamic
+- program-updatable, user-writable dynamic

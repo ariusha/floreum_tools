@@ -1,8 +1,10 @@
 [package]
-name = "floreum"
+name = "floreum_tools"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+floreum_parser = "15.1.0"
+lock_api = "0.4.14"
 postcard = "1.1.3"
 serde = "1.0.228"
