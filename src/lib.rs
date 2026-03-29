@@ -1,9 +1,8 @@
 #![no_std]
 extern crate alloc;
-mod dynamic_sized;
-mod dynamic_unsized;
+mod array;
 mod constant;
-pub use dynamic_sized::*;
+pub use array::*;
 pub use constant::*;
 use alloc::{string::String, sync::Arc};
 use floreum_parser::{Entry, FloreumError,};
