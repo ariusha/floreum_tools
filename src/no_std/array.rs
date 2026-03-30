@@ -4,21 +4,21 @@ use floreum_parser::FloreumError;
 use lock_api::{RawRwLock, RwLock};
 #[derive(Debug, Clone)]
 pub struct Array<
-    Rw: RawRwLock + 'static,
     const SIZE: usize,
-    Flush: Fn(Arc<[u8; SIZE]>) -> Result<(), FloreumError>,
+    Flush: Fn(Arc<[u8; SIZE]>) -> Result<(), FloreumError> + 'static + Clone,
+    Rw: RawRwLock + 'static,
 > {
     content: Arc<RwLock<Rw, Arc<[u8; SIZE]>>>,
     flush: Flush,
 }
 impl<
-    Rw: RawRwLock + 'static,
     const SIZE: usize,
-    Flush: Fn(Arc<[u8; SIZE]>) -> Result<(), FloreumError>,
-> File for Array<Rw, SIZE, Flush>
+    Flush: Fn(Arc<[u8; SIZE]>) -> Result<(), FloreumError> + 'static + Clone,
+    Rw: RawRwLock + 'static,
+> File for Array<SIZE, Flush, Rw>
 {
     fn open(
-        &self,
+        self: Arc<Self>,
         _read: bool,
         _write: bool,
         append: bool,
@@ -27,11 +27,11 @@ impl<
         if truncate | append {
             Err(FloreumError::PermissionDenied)
         } else {
-            Ok(Arc::new(self.clone()))
+            Ok(self.clone())
         }
     }
     fn open_dir(
-        &self,
+        self: Arc<Self>,
         _read: bool,
         _write: bool,
         _append: bool,
@@ -41,10 +41,10 @@ impl<
     }
 }
 impl<
-    Rw: RawRwLock + 'static,
     const SIZE: usize,
-    Flush: Fn(Arc<[u8; SIZE]>) -> Result<(), FloreumError>,
-> FileDescriptor for Array<Rw, SIZE, Flush>
+    Flush: Fn(Arc<[u8; SIZE]>) -> Result<(), FloreumError> + 'static + Clone,
+    Rw: RawRwLock + 'static,
+> FileDescriptor for Array<SIZE, Flush, Rw>
 {
     fn read(&self, offset: u64, _count: u64) -> Result<(Arc<[u8]>, usize), FloreumError> {
         Ok((
@@ -80,7 +80,6 @@ impl<
         Err(FloreumError::PermissionDenied)
     }
     fn flush(&self) -> Result<(), FloreumError> {
-        *self.file.write() = Arc::new(self.content.read().clone());
-        Ok(())
+        (self.flush)(self.content.read().clone())
     }
 }
